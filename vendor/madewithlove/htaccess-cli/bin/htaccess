@@ -1,0 +1,38 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+
+$potentialAutoloadLocations = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../../vendor/autoload.php',
+];
+
+foreach ($potentialAutoloadLocations as $file) {
+    if (file_exists($file)) {
+        require_once $file;
+        break;
+    }
+}
+
+use Http\Adapter\Guzzle7\Client;
+use Http\Factory\Guzzle\ServerRequestFactory;
+use Madewithlove\Htaccess\TableRenderer;
+use Madewithlove\HtaccessClient;
+use Madewithlove\HtaccessCommand;
+use Symfony\Component\Console\Application;
+
+$application = new Application();
+
+$htaccessClient = new HtaccessClient(
+    Client::createWithConfig([
+        'headers' => [
+            'User-Agent' => 'HtaccessCli',
+        ],
+    ]),
+    new ServerRequestFactory()
+);
+
+$htaccessCommand = new HtaccessCommand($htaccessClient, new TableRenderer());
+$application->add($htaccessCommand);
+$application->setDefaultCommand($htaccessCommand->getName(), true);
+
+$application->run();
